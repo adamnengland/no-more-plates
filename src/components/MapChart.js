@@ -1,59 +1,46 @@
-import React, { memo } from "react";
+import React, { memo, useState, useEffect } from "react";
+import { csv } from "d3-fetch";
 import {
   ZoomableGroup,
   ComposableMap,
   Geographies,
   Geography,
 } from "react-simple-maps";
+import FreedomCalculator from "../FreedomCalculator";
 
 import allStates from "./data/allstates.json";
 
 const geoUrl = "https://cdn.jsdelivr.net/npm/us-atlas@3/states-10m.json";
 
-const rounded = num => {
-  if (num > 1000000000) {
-    return Math.round(num / 100000000) / 10 + "Bn";
-  } else if (num > 1000000) {
-    return Math.round(num / 100000) / 10 + "M";
-  } else {
-    return Math.round(num / 100) / 10 + "K";
-  }
-};
-
-const offsets = {
-  VT: [50, -8],
-  NH: [34, 2],
-  MA: [30, -1],
-  RI: [28, 2],
-  CT: [35, 10],
-  NJ: [34, 1],
-  DE: [33, 0],
-  MD: [47, 10],
-  DC: [49, 21]
-};
-
 const MapChart = ({ setTooltipContent }) => {
+  const [data, setData] = useState([]);
+
+  useEffect(() => {
+    csv(`/freedom.csv`).then((data) => {
+      setData(data);
+    });
+  }, []);
+
   return (
     <ComposableMap data-tip="" projection="geoAlbersUsa">
-        <ZoomableGroup>
       <Geographies geography={geoUrl}>
         {({ geographies }) => (
           <>
-            {geographies.map(geo => (
-              <Geography
+            {geographies.map(geo => {
+              const d = data.find((s) => s.Name === geo.properties.name);
+              return <Geography
                 key={geo.rsmKey}
                 stroke="#FFF"
                 geography={geo}
-                fill="#DDD"
+                fill={d ? FreedomCalculator(d) : "#D6D6DA"}
                 onMouseEnter={() => {
                     const NAME = geo.properties.name;
-                    console.log(setTooltipContent);
                     setTooltipContent(NAME);
                 }}
                 onMouseLeave={() => {
-                    setTooltipContent("Jerk");
+                    setTooltipContent("");
                 }}
-                style={{
+                /*style={{
                     default: {
                       fill: "#D6D6DA",
                       outline: "none"
@@ -66,13 +53,12 @@ const MapChart = ({ setTooltipContent }) => {
                       fill: "#E42",
                       outline: "none"
                     }
-                }}
+                }}*/
               />
-            ))}
+              })}
           </>
         )}
       </Geographies>
-      </ZoomableGroup>
     </ComposableMap>
   );
 };

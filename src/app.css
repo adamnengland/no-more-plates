@@ -40,3 +40,7 @@ svg {
   display: inline-block;
   vertical-align: middle;
 }
+
+.index-hero {
+  background-image: url('/img/hero-background_1728x.jpeg');
+}
